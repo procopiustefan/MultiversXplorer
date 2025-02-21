@@ -1,0 +1,62 @@
+/* Global Styles */
+.stApp {
+    background-color: #0e1117;
+}
+
+/* Metric Containers */
+.metric-container {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.metric-label {
+    color: #8c8c8c;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.metric-value {
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+/* Transaction Expanders */
+.streamlit-expanderHeader {
+    background-color: #1a1a1a;
+    border-radius: 4px;
+    padding: 0.5rem;
+}
+
+/* Charts */
+.js-plotly-plot {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+/* Sidebar */
+.css-1d391kg {
+    background-color: #1a1a1a;
+}
+
+/* Search Input */
+.stTextInput input {
+    background-color: #2d2d2d;
+    border: 1px solid #444;
+    color: white;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 1rem;
+}
+
+.stTabs [data-baseweb="tab"] {
+    height: 3rem;
+    background-color: #1a1a1a;
+    border-radius: 4px;
+}
