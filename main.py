@@ -8,6 +8,10 @@ from components.charts import create_price_chart, create_volume_chart
 from components.metrics import display_metrics
 from utils.cache import get_cached_data
 
+# Initialize session state for theme
+if 'theme' not in st.session_state:
+    st.session_state.theme = 'dark'
+
 # Page config
 st.set_page_config(
     page_title="MultiversX Explorer",
@@ -20,6 +24,13 @@ st.set_page_config(
 with open('assets/style.css') as f:
     st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
 
+# Set theme
+st.markdown(f"""
+    <script>
+        document.body.setAttribute('data-theme', '{st.session_state.theme}');
+    </script>
+    """, unsafe_allow_html=True)
+
 # Initialize services
 mx_service = MultiversXService()
 cmc_service = CoinMarketCapService()
@@ -27,6 +38,15 @@ cmc_service = CoinMarketCapService()
 # Sidebar
 st.sidebar.title("MultiversX Explorer")
 st.sidebar.markdown("---")
+
+# Theme toggle
+theme = st.sidebar.selectbox(
+    "🎨 Theme",
+    ["Dark", "Light"],
+    index=0 if st.session_state.theme == 'dark' else 1
+)
+st.session_state.theme = theme.lower()
+
 timeframe = st.sidebar.selectbox(
     "📅 Timeframe",
     ["24h", "7d", "30d", "90d"],
