@@ -88,18 +88,37 @@ with tab2:
         - A well-distributed volume suggests healthy market liquidity
         """)
 
-# Network Statistics
-st.markdown("### 🌐 Network Statistics")
-col1, col2 = st.columns(2)
+# Network and Staking Statistics
+st.markdown("### 🌐 Network & Staking Overview")
+network_stats = get_cached_data('network_stats', mx_service.get_network_stats)
+staking_stats = get_cached_data('staking_stats', mx_service.get_staking_stats)
+
+col1, col2, col3 = st.columns(3)
 
 with col1:
-    network_stats = get_cached_data('network_stats', mx_service.get_network_stats)
+    st.markdown("#### Network Metrics")
     st.metric("Total Transactions", f"{network_stats['transactions']:,}")
     st.metric("Active Addresses", f"{network_stats['active_addresses']:,}")
+    st.metric("Network Speed", f"{network_stats['tps']} TPS")
 
 with col2:
-    st.metric("Network Speed", f"{network_stats['tps']} TPS")
-    st.metric("Staking APR", f"{network_stats['staking_apr']:.2f}%")
+    st.markdown("#### Validator Statistics")
+    st.metric("Total Validators", f"{staking_stats['total_validators']:,}")
+    st.metric("Active Validators", f"{staking_stats['active_validators']:,}")
+    st.metric("Total Observers", f"{staking_stats['total_observers']:,}")
+
+with col3:
+    st.markdown("#### Staking Metrics")
+    st.metric("Total Staked", f"{staking_stats['total_staked']:,.0f} EGLD")
+    st.metric("Staking APR", f"{network_stats['staking_apr']}%")
+    st.metric("Nakamoto Coefficient", staking_stats['nakamoto_coefficient'])
+
+    with st.expander("ℹ️ What is Nakamoto Coefficient?"):
+        st.markdown("""
+        The Nakamoto Coefficient represents the minimum number of validators 
+        that would need to collude to control the network. A higher number 
+        indicates better decentralization.
+        """)
 
 # Recent Transactions
 st.markdown("### 🔄 Recent Transactions")
