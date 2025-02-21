@@ -26,31 +26,36 @@ cmc_service = CoinMarketCapService()
 
 # Sidebar
 st.sidebar.title("MultiversX Explorer")
-search_query = st.sidebar.text_input("Search Transactions/Addresses")
+st.sidebar.markdown("---")
+search_query = st.sidebar.text_input("🔍 Search Transactions/Addresses")
 timeframe = st.sidebar.selectbox(
-    "Timeframe",
-    ["24h", "7d", "30d", "90d"]
+    "📅 Timeframe",
+    ["24h", "7d", "30d", "90d"],
+    index=1  # Default to 7d
 )
 
 # Main content
 st.title("MultiversX Network Overview")
+st.markdown("Real-time insights into the MultiversX blockchain ecosystem")
 
-# Market metrics
-col1, col2, col3, col4 = st.columns(4)
-market_data = get_cached_data('market_data', cmc_service.get_market_data)
+# Market metrics in a container
+with st.container():
+    st.markdown("### 📈 Market Overview")
+    col1, col2, col3, col4 = st.columns(4)
+    market_data = get_cached_data('market_data', cmc_service.get_market_data)
 
-with col1:
-    display_metrics("Price", f"${market_data['price']:.2f}")
-with col2:
-    display_metrics("24h Volume", f"${market_data['volume_24h']:,.0f}")
-with col3:
-    display_metrics("Market Cap", f"${market_data['market_cap']:,.0f}")
-with col4:
-    display_metrics("Circulating Supply", f"{market_data['circulating_supply']:,.0f} EGLD")
+    with col1:
+        display_metrics("Current Price", f"${market_data['price']:.2f}")
+    with col2:
+        display_metrics("24h Volume", f"${market_data['volume_24h']:,.0f}")
+    with col3:
+        display_metrics("Market Cap", f"${market_data['market_cap']:,.0f}")
+    with col4:
+        display_metrics("Circulating Supply", f"{market_data['circulating_supply']:,.0f} EGLD")
 
-# Charts
-st.subheader("Price & Volume Analysis")
-tab1, tab2 = st.tabs(["Price Chart", "Volume Breakdown"])
+# Charts section
+st.markdown("### 📊 Market Analysis")
+tab1, tab2 = st.tabs(["Price Analysis", "Volume Distribution"])
 
 with tab1:
     price_data = get_cached_data('price_data', 
@@ -58,14 +63,30 @@ with tab1:
     fig = create_price_chart(price_data)
     st.plotly_chart(fig, use_container_width=True)
 
+    # Add price analysis context
+    with st.expander("💡 Understanding the Price Chart"):
+        st.markdown("""
+        - The top chart shows the EGLD price movement over time
+        - The bottom chart displays trading volume, indicating market activity
+        - Higher volume often correlates with significant price movements
+        """)
+
 with tab2:
     volume_data = get_cached_data('volume_data',
                                  lambda: cmc_service.get_exchange_volumes())
     fig = create_volume_chart(volume_data)
     st.plotly_chart(fig, use_container_width=True)
 
+    # Add volume analysis context
+    with st.expander("💡 Understanding Volume Distribution"):
+        st.markdown("""
+        - Shows the distribution of trading volume across major exchanges
+        - Larger segments indicate higher trading activity on that exchange
+        - A well-distributed volume suggests healthy market liquidity
+        """)
+
 # Network Statistics
-st.subheader("Network Statistics")
+st.markdown("### 🌐 Network Statistics")
 col1, col2 = st.columns(2)
 
 with col1:
@@ -78,13 +99,15 @@ with col2:
     st.metric("Staking APR", f"{network_stats['staking_apr']:.2f}%")
 
 # Recent Transactions
-st.subheader("Recent Transactions")
+st.markdown("### 🔄 Recent Transactions")
 transactions = get_cached_data('recent_transactions', 
                              mx_service.get_recent_transactions)
 
 for tx in transactions[:10]:
     with st.expander(f"Transaction {tx['hash'][:10]}..."):
-        st.write(f"From: {tx['from']}")
-        st.write(f"To: {tx['to']}")
-        st.write(f"Amount: {tx['amount']} EGLD")
-        st.write(f"Time: {tx['timestamp']}")
+        st.markdown(f"""
+        **From:** `{tx['from']}`  
+        **To:** `{tx['to']}`  
+        **Amount:** {tx['amount']} EGLD  
+        **Time:** {tx['timestamp']}
+        """)
