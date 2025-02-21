@@ -6,8 +6,11 @@ class CoinMarketCapService:
     def __init__(self):
         self.base_url = "https://pro-api.coinmarketcap.com/v1"
         self.egld_id = "6892"  # MultiversX ID on CMC
+        api_key = os.getenv('COINMARKETCAP_API_KEY')
+        if not api_key:
+            print("Warning: COINMARKETCAP_API_KEY not found in environment variables")
         self.headers = {
-            'X-CMC_PRO_API_KEY': os.getenv('COINMARKETCAP_API_KEY'),
+            'X-CMC_PRO_API_KEY': api_key,
             'Accept': 'application/json'
         }
 
@@ -19,14 +22,15 @@ class CoinMarketCapService:
                 params={'id': self.egld_id},
                 headers=self.headers
             )
+            print(f"Market data response status: {response.status_code}")
             response.raise_for_status()
             data = response.json()
 
             if 'data' not in data:
+                print(f"Unexpected API response structure: {data}")
                 raise ValueError(f"Unexpected API response: {data}")
 
             quote = data['data'][self.egld_id]['quote']['USD']
-
             return {
                 'price': round(quote['price'], 2),
                 'volume_24h': quote['volume_24h'],
@@ -35,10 +39,10 @@ class CoinMarketCapService:
                 'circulating_supply': data['data'][self.egld_id]['circulating_supply']
             }
         except requests.exceptions.RequestException as e:
-            print(f"Error making API request: {e}")
+            print(f"Error making API request: {str(e)}")
             return self._get_default_market_data()
         except (KeyError, ValueError) as e:
-            print(f"Error parsing market data: {e}")
+            print(f"Error parsing market data: {str(e)}")
             return self._get_default_market_data()
 
     def get_historical_data(self, timeframe):
@@ -59,43 +63,50 @@ class CoinMarketCapService:
                 interval = '1d'
                 count = days
 
+            print(f"Fetching historical data for {days} days with {interval} interval")
             response = requests.get(
                 f"{self.base_url}/cryptocurrency/quotes/historical",
                 params={
                     'id': self.egld_id,
                     'interval': interval,
-                    'count': count
+                    'count': count,
+                    'convert': 'USD'
                 },
                 headers=self.headers
             )
+            print(f"Historical data response status: {response.status_code}")
             response.raise_for_status()
             data = response.json()
 
             if 'data' not in data:
+                print(f"Unexpected historical data response: {data}")
                 raise ValueError(f"Unexpected API response: {data}")
 
             return data['data']['quotes']
         except Exception as e:
-            print(f"Error fetching historical data: {e}")
+            print(f"Error fetching historical data: {str(e)}")
             return self._get_sample_historical_data(days)
 
     def get_exchange_volumes(self):
         """Fetch exchange volume breakdown"""
         try:
+            print("Fetching exchange volumes data")
             response = requests.get(
                 f"{self.base_url}/cryptocurrency/market-pairs/latest",
-                params={'id': self.egld_id},
+                params={'id': self.egld_id, 'convert': 'USD'},
                 headers=self.headers
             )
+            print(f"Exchange volumes response status: {response.status_code}")
             response.raise_for_status()
             data = response.json()
 
             if 'data' not in data:
+                print(f"Unexpected exchange volume response: {data}")
                 raise ValueError(f"Unexpected API response: {data}")
 
             return data['data']['market_pairs']
         except Exception as e:
-            print(f"Error fetching exchange volumes: {e}")
+            print(f"Error fetching exchange volumes: {str(e)}")
             return self._get_sample_exchange_data()
 
     def _get_default_market_data(self):
