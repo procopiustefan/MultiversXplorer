@@ -4,6 +4,16 @@ from plotly.subplots import make_subplots
 
 def create_price_chart(price_data):
     """Create price and volume chart"""
+    if not price_data:
+        # Return empty chart with message
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No price data available",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False
+        )
+        return fig
+
     fig = make_subplots(
         rows=2, cols=1,
         subplot_titles=("EGLD Price (USD)", "Trading Volume (USD)"),
@@ -64,8 +74,28 @@ def create_price_chart(price_data):
 
 def create_volume_chart(volume_data):
     """Create exchange volume breakdown chart"""
+    if not volume_data:
+        # Return empty chart with message
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No volume data available",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False
+        )
+        return fig
+
     exchanges = [pair['exchange']['name'] for pair in volume_data[:10]]
     volumes = [pair['quote']['USD']['volume_24h'] for pair in volume_data[:10]]
+
+    if not volumes or sum(volumes) == 0:
+        # Return empty chart with message
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No trading volume data available",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, showarrow=False
+        )
+        return fig
 
     # Calculate percentages for hover text
     total_volume = sum(volumes)

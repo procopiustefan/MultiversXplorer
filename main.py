@@ -44,6 +44,9 @@ with st.container():
     col1, col2, col3, col4 = st.columns(4)
     market_data = get_cached_data('market_data', cmc_service.get_market_data)
 
+    if all(v == 0 for v in market_data.values()):
+        st.warning("⚠️ Unable to fetch market data. Please check back later.")
+
     with col1:
         display_metrics("Current Price", f"${market_data['price']:.2f}")
     with col2:
@@ -103,11 +106,14 @@ st.markdown("### 🔄 Recent Transactions")
 transactions = get_cached_data('recent_transactions', 
                              mx_service.get_recent_transactions)
 
-for tx in transactions[:10]:
-    with st.expander(f"Transaction {tx['hash'][:10]}..."):
-        st.markdown(f"""
-        **From:** `{tx['from']}`  
-        **To:** `{tx['to']}`  
-        **Amount:** {tx['amount']} EGLD  
-        **Time:** {tx['timestamp']}
-        """)
+if not transactions:
+    st.info("No recent transactions available at the moment.")
+else:
+    for tx in transactions[:10]:
+        with st.expander(f"Transaction {tx['hash'][:10]}..."):
+            st.markdown(f"""
+            **From:** `{tx['from']}`  
+            **To:** `{tx['to']}`  
+            **Amount:** {tx['amount']} EGLD  
+            **Time:** {tx['timestamp']}
+            """)
