@@ -1,96 +1,76 @@
-import sqlite3
+import os
+from sqlalchemy import create_engine, text
 from datetime import datetime, timedelta
 import json
-import os
+import logging
 
 class Database:
     def __init__(self):
-        # Create data directory if it doesn't exist
-        os.makedirs('data', exist_ok=True)
-        
-        # Connect to database
-        self.conn = sqlite3.connect('data/multiversx.db')
+        """Initialize database connection"""
+        self.db_url = os.getenv('DATABASE_URL', 'postgresql://multiversx_user:jm2bwE2KbUFRHX9erngeU4yptqQoTLX1@dpg-cuu90a56l47c73adgdvg-a/multiversx')
+        self.engine = create_engine(self.db_url)
         self.create_tables()
 
     def create_tables(self):
         """Create necessary tables if they don't exist"""
-        cursor = self.conn.cursor()
-        
-        # Wallet balances and transactions
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS wallet_data (
-            address TEXT,
-            balance REAL,
-            transfers TEXT,
-            daily_flows TEXT,
-            last_updated TIMESTAMP,
-            PRIMARY KEY (address)
-        )
-        ''')
-
-        # Market data
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS market_data (
-            price REAL,
-            volume_24h REAL,
-            market_cap REAL,
-            circulating_supply REAL,
-            last_updated TIMESTAMP,
-            PRIMARY KEY (last_updated)
-        )
-        ''')
-
-        # Network stats
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS network_stats (
-            transactions INTEGER,
-            active_addresses INTEGER,
-            tps REAL,
-            last_updated TIMESTAMP,
-            PRIMARY KEY (last_updated)
-        )
-        ''')
-
-        self.conn.commit()
+        with self.engine.connect() as conn:
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS wallet_data (
+                    address TEXT PRIMARY KEY,
+                    balance FLOAT,
+                    transfers JSON,
+                    daily_flows JSON,
+                    last_updated TIMESTAMP
+                )
+            """))
+            
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS market_data (
+                    price FLOAT,
+                    volume_24h FLOAT,
+                    market_cap FLOAT,
+                    circulating_supply FLOAT,
+                    last_updated TIMESTAMP PRIMARY KEY
+                )
+            """))
+            
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS network_stats (
+                    transactions INTEGER,
+                    active_addresses INTEGER,
+                    tps FLOAT,
+                    last_updated TIMESTAMP PRIMARY KEY
+                )
+            """))
+            conn.commit()
 
     def update_wallet_data(self, address, data):
         """Store wallet data with timestamp"""
-        cursor = self.conn.cursor()
-        
         try:
-            # Convert datetime objects to ISO format strings in transfers
-            transfers = []
-            for transfer in data['transfers']:
-                transfers.append({
-                    'timestamp': transfer['timestamp'].isoformat(),
-                    'value': float(transfer['value']),  # Ensure value is float
-                    'action': transfer['action']
-                })
-            
-            # Convert datetime objects to ISO format strings in daily_flows
-            daily_flows = []
-            for flow in data['daily_flows']:
-                daily_flows.append({
-                    'date': flow['date'].isoformat(),
-                    'inflow': float(flow['inflow']),  # Ensure values are float
-                    'outflow': float(flow['outflow']),
-                    'net_flow': float(flow['net_flow'])
-                })
-            
-            cursor.execute('''
-            INSERT OR REPLACE INTO wallet_data 
-            (address, balance, transfers, daily_flows, last_updated)
-            VALUES (?, ?, ?, ?, ?)
-            ''', (
-                address,
-                float(data['balance']),  # Ensure balance is float
-                json.dumps(transfers),
-                json.dumps(daily_flows),
-                datetime.now().isoformat()
-            ))
-            self.conn.commit()
+            with self.engine.connect() as conn:
+                conn.execute(
+                    text("""
+                        INSERT INTO wallet_data 
+                        (address, balance, transfers, daily_flows, last_updated)
+                        VALUES (:address, :balance, :transfers, :daily_flows, :last_updated)
+                        ON CONFLICT (address) 
+                        DO UPDATE SET 
+                            balance = :balance,
+                            transfers = :transfers,
+                            daily_flows = :daily_flows,
+                            last_updated = :last_updated
+                    """),
+                    {
+                        'address': address,
+                        'balance': float(data['balance']),
+                        'transfers': json.dumps(data['transfers']),
+                        'daily_flows': json.dumps(data['daily_flows']),
+                        'last_updated': datetime.now()
+                    }
+                )
+                conn.commit()
         except Exception as e:
-            print(f"Error updating wallet data: {e}")
+            logging.error(f"Error updating wallet data: {e}")
             raise
 
     def get_wallet_data(self, address, max_age_minutes=10):
