@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "multiversxplorer"
 version = "0.1.0"
@@ -30,7 +34,3 @@ requests = "^2.32.3"
 python-dotenv = "^1.0.0"
 twilio = "^9.4.6"
 tabulate = "^0.9.0"
-
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
