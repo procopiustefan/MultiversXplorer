@@ -1,17 +1,20 @@
-[project]
-name = "repl-nix-workspace"
+[tool.poetry]
+name = "multiversxplorer"
 version = "0.1.0"
-description = "Add your description here"
-requires-python = ">=3.11"
-dependencies = [
-    "pandas>=2.2.3",
-    "plotly-express>=0.4.1",
-    "plotly>=6.0.0",
-    "requests>=2.32.3",
-    "streamlit>=1.42.2",
-    "twilio>=9.4.6",
-    "tabulate>=0.9.0",
-]
+description = "MultiversX Explorer Dashboard"
+authors = ["Your Name <your.email@example.com>"]
 
 [tool.poetry.dependencies]
+python = ">=3.11"
+streamlit = "^1.42.2"
+pandas = "^2.2.3"
+plotly = "^6.0.0"
+plotly-express = "^0.4.1"
+requests = "^2.32.3"
 python-dotenv = "^1.0.0"
+twilio = "^9.4.6"
+tabulate = "^0.9.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
